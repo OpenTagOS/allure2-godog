@@ -2,10 +2,8 @@ package allure
 
 import (
 	"encoding/json"
-	"os"
-	"time"
-
 	uuid5 "github.com/satori/go.uuid"
+	"os"
 )
 
 type ReportWriter struct {
@@ -47,16 +45,14 @@ func (w *ReportWriter) WriteContainerResults(container *Container) error {
 		return err
 	}
 
-	archivePath := w.dir + time.Now().Format("2006_01_02_15:04:05.000000") + ".zip"
-	if err := w.archiver.Zip(archivePath); err != nil {
-		return err
-	}
+	archivePath := w.dir + "report.zip"
 
-	return os.RemoveAll(w.tmpDir)
+	return w.archiver.Zip(archivePath)
+	//return os.RemoveAll(w.tmpDir)
 }
 
 func (w *ReportWriter) writeFile(data interface{}, fileName string) error {
-	filePath := w.tmpDir + fileName
+	filePath := w.dir + fileName
 
 	serialized, err := json.Marshal(data)
 	if err != nil {
