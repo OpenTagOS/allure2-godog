@@ -41,13 +41,13 @@ func (w *ReportWriter) WriteTestCaseResults(testCase *TestCase) error {
 func (w *ReportWriter) WriteContainerResults(container *Container) error {
 	fileName := container.UUID + "-container.json"
 
-	return w.writeFile(container, fileName)
+	if err := w.writeFile(container, fileName); err != nil {
+		return err
+	}
 
-	//archivePath := w.dir + time.Now().Format("2006_01_02_15:04:05.000000") + ".zip"
-	//if err := w.archiver.Zip(archivePath); err != nil {
-	//	return err
-	//}
-	//
+	archivePath := w.dir + "report.zip"
+
+	return w.archiver.Zip(archivePath)
 	//return os.RemoveAll(w.tmpDir)
 }
 
