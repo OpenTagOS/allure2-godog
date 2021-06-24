@@ -8,15 +8,17 @@ Installation
 ---
 
 ```
-go get https://github.com/OpenTagOS/allure2-godog
+go get github.com/OpenTagOS/allure2-godog
 ```
 
 Usage
 ---
 
 ```go
-"github.com/OpenTagOS/allure2-godog/allure"
-"github.com/OpenTagOS/allure2-godog/alluregodog"
+import (
+    "github.com/OpenTagOS/allure2-godog/allure"
+    "github.com/OpenTagOS/allure2-godog/alluregodog"
+)
 
 allureWriter := allure.NewReportWriter("/tmp/report/")
 godog.Format("allure", "Allure 2 formatter", alluregodog.NewFormatter(allureWriter))
@@ -24,7 +26,7 @@ godog.Format("allure", "Allure 2 formatter", alluregodog.NewFormatter(allureWrit
 opts = godog.Options{
 	Output: colors.Colored(os.Stdout),
 	Paths:  []string{"."},
-    /// other options...
+	// other options...
 	Format: "allure",
 }
 
@@ -37,13 +39,19 @@ status := godog.TestSuite{
 
 Allure report zip archive will be generated in the /tmp/report/ dir after execution.
 
+Features
+---
+
 `WithTagLabelMapping` option is used to map scenario tag to Allure test case label:
 
 ```go
 tagLabelMapping := map[string]string{
 	"issueId": "issue",
 }
-godog.Format("allure", "Allure formatter", alluregodog.NewFormatter(allureWriter, alluregodog.WithTagLabelMapping(tagLabelMapping)))
+godog.Format("allure", "Allure formatter", alluregodog.NewFormatter(
+    allureWriter,
+    alluregodog.WithTagLabelMapping(tagLabelMapping)
+))
 ```
 
 ```
