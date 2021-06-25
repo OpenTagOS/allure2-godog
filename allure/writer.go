@@ -2,34 +2,29 @@ package allure
 
 import (
 	"encoding/json"
-	uuid5 "github.com/satori/go.uuid"
 	"os"
 )
 
 type ReportWriter struct {
-	dir      string
-	tmpDir   string
-	archiver *Archiver
+	dir string
 }
 
 func NewReportWriter(dir string) *ReportWriter {
-	tmpDir := os.TempDir() + "/allure_godog/" + uuid5.NewV4().String() + "/"
-
-	archiver := NewArchiver(tmpDir)
-
 	return &ReportWriter{
-		archiver: archiver,
-		dir:      dir,
-		tmpDir:   tmpDir,
+		dir: dir,
 	}
 }
 
 func (w *ReportWriter) Init() error {
+	if err := os.RemoveAll(w.dir); err != nil {
+		return err
+	}
+
 	if err := os.MkdirAll(w.dir, 0775); err != nil {
 		return err
 	}
 
-	return os.MkdirAll(w.tmpDir, 0775)
+	return nil
 }
 
 func (w *ReportWriter) WriteTestCaseResults(testCase *TestCase) error {
@@ -41,14 +36,7 @@ func (w *ReportWriter) WriteTestCaseResults(testCase *TestCase) error {
 func (w *ReportWriter) WriteContainerResults(container *Container) error {
 	fileName := container.UUID + "-container.json"
 
-	if err := w.writeFile(container, fileName); err != nil {
-		return err
-	}
-
-	archivePath := w.dir + "report.zip"
-
-	return w.archiver.Zip(archivePath)
-	//return os.RemoveAll(w.tmpDir)
+	return w.writeFile(container, fileName)
 }
 
 func (w *ReportWriter) writeFile(data interface{}, fileName string) error {

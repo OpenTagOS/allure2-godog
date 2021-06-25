@@ -37,7 +37,7 @@ status := godog.TestSuite{
 }.Run()
 ```
 
-Allure report zip archive will be generated in the /tmp/report/ dir after execution.
+Allure report will be generated in the /tmp/report/ dir after execution.
 
 Features
 ---
