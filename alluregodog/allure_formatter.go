@@ -6,7 +6,7 @@ import (
 
 	"github.com/OpenTagOS/allure2-godog/allure"
 	"github.com/cucumber/godog"
-	"github.com/cucumber/messages-go/v10"
+	"github.com/cucumber/messages-go/v16"
 )
 
 var tagRegexp = regexp.MustCompile(`^@(.*):(.*)$`)
@@ -14,7 +14,7 @@ var tagRegexp = regexp.MustCompile(`^@(.*):(.*)$`)
 type allureFmt struct {
 	writer          Writer
 	suiteName       string
-	currentFeature  *messages.GherkinDocument_Feature
+	currentFeature  *messages.Feature
 	currentScenario *allure.TestCase
 	currentStep     *allure.Step
 	container       *allure.Container
@@ -55,8 +55,8 @@ func (f *allureFmt) TestRunStarted() {
 	f.container = allure.NewContainer()
 }
 
-func (f *allureFmt) Feature(doc *messages.GherkinDocument, uri string, content []byte) {
-	f.currentFeature = doc.Feature
+func (f *allureFmt) Feature(document *messages.GherkinDocument, s string, bytes []byte) {
+	f.currentFeature = document.Feature
 }
 
 func (f *allureFmt) Pickle(scenario *godog.Scenario) {
@@ -85,14 +85,24 @@ func stepArgumentToParam(argument *messages.PickleStepArgument) *allure.Paramete
 		return nil
 	}
 
-	if _, ok := argument.Message.(*messages.PickleStepArgument_DocString); ok {
-		return &allure.Parameter{Name: "Message", Value: argument.GetDocString().Content}
+	isString := defArgumentType(argument.DocString)
+	if isString != nil {
+		return isString
+	} else {
+		return defArgumentType(argument.DataTable)
 	}
+}
 
-	if _, ok := argument.Message.(*messages.PickleStepArgument_DataTable); ok {
-		for key, value := range firstTableRow(argument.GetDataTable()) {
+func defArgumentType(i interface{}) *allure.Parameter {
+	switch arg := i.(type) {
+	case messages.PickleDocString:
+		return &allure.Parameter{Name: "Message", Value: arg.Content}
+	case messages.PickleTable:
+		for key, value := range firstTableRow(&arg) {
 			return &allure.Parameter{Name: key, Value: value}
 		}
+	default:
+		return nil
 	}
 
 	return nil
@@ -163,7 +173,7 @@ func (f *allureFmt) Summary() {
 	}
 }
 
-func (f *allureFmt) tagsToLabels(tags []*messages.Pickle_PickleTag) []allure.Label {
+func (f *allureFmt) tagsToLabels(tags []*messages.PickleTag) []allure.Label {
 	var labels []allure.Label
 
 	for _, tag := range tags {
@@ -186,11 +196,11 @@ func (f *allureFmt) tagsToLabels(tags []*messages.Pickle_PickleTag) []allure.Lab
 	return labels
 }
 
-func isLastStep(pickle *messages.Pickle, step *messages.Pickle_PickleStep) bool {
+func isLastStep(pickle *messages.Pickle, step *messages.PickleStep) bool {
 	return pickle.Steps[len(pickle.Steps)-1].Id == step.Id
 }
 
-func firstTableRow(tableData *messages.PickleStepArgument_PickleTable) map[string]string {
+func firstTableRow(tableData *messages.PickleTable) map[string]string {
 	mapData := make(map[string]string)
 
 	if len(tableData.Rows) < 2 {
